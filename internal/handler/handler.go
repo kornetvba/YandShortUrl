@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/kornetvba/YandShortUrl/internal/service"
 	"io"
+	"log"
 	"net/http"
 )
 
@@ -22,6 +23,7 @@ func TextPlainPage(res http.ResponseWriter, req *http.Request) {
 		if err != nil {
 			err.Error()
 		}
+
 	}()
 
 	if err != nil {
@@ -32,17 +34,18 @@ func TextPlainPage(res http.ResponseWriter, req *http.Request) {
 
 	if errors != nil {
 		res.WriteHeader(http.StatusBadRequest)
+		return
 	}
 
 	result := fmt.Sprintf("%s%s%s%s", "http://", req.Host, req.URL.String(), hashText)
 	res.Header().Set("Content-Type", "text/plain")
 	res.Header().Set("Content-Length", fmt.Sprint(len(result)))
-
+	res.WriteHeader(http.StatusCreated)
 	_, err = res.Write([]byte(result))
 	if err != nil {
-		res.WriteHeader(http.StatusBadRequest)
+		log.Printf(err.Error())
+		return
 	}
-	res.WriteHeader(http.StatusCreated)
 
 }
 
