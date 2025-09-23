@@ -21,7 +21,7 @@ func TextPlainPage(res http.ResponseWriter, req *http.Request) {
 	defer func() {
 		err := req.Body.Close()
 		if err != nil {
-			err.Error()
+			log.Printf("Body close error: %v", err)
 		}
 
 	}()
@@ -43,7 +43,7 @@ func TextPlainPage(res http.ResponseWriter, req *http.Request) {
 	res.WriteHeader(http.StatusCreated)
 	_, err = res.Write([]byte(result))
 	if err != nil {
-		log.Printf(err.Error())
+		log.Printf("Body err: %v", err)
 		return
 	}
 
@@ -59,13 +59,13 @@ func GetTextPlainPage(res http.ResponseWriter, req *http.Request) {
 	//	return
 	//}
 	id := req.PathValue("id")
-	resUrl, err := service.DeHashText(id)
+	resURL, err := service.DeHashText(id)
 	if err != nil {
 		res.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	res.Header().Set("Location", string(resUrl))
+	res.Header().Set("Location", string(resURL))
 	res.WriteHeader(http.StatusTemporaryRedirect)
 
 }
