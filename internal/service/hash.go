@@ -11,10 +11,9 @@ func HashPlainText(text []byte) (string, error) {
 	hashed := fnv.New32a()
 	_, err := hashed.Write(text)
 	if err != nil {
-		err.Error()
 		return "", err
 	}
-	hashedText := (hashed.Sum32())
+	hashedText := hashed.Sum32()
 	HashMap[fmt.Sprintf("%08x", hashedText)] = text
 
 	return fmt.Sprintf("%08x", hashedText), nil

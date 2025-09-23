@@ -17,7 +17,12 @@ func TextPlainPage(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 	PostText, err := io.ReadAll(req.Body)
-	defer req.Body.Close()
+	defer func() {
+		err := req.Body.Close()
+		if err != nil {
+			err.Error()
+		}
+	}()
 
 	if err != nil {
 		res.WriteHeader(http.StatusBadRequest)
@@ -32,9 +37,12 @@ func TextPlainPage(res http.ResponseWriter, req *http.Request) {
 	result := fmt.Sprintf("%s%s%s%s", "http://", req.Host, req.URL.String(), hashText)
 	res.Header().Set("Content-Type", "text/plain")
 	res.Header().Set("Content-Length", fmt.Sprint(len(result)))
-	res.WriteHeader(http.StatusCreated)
 
-	res.Write([]byte(result))
+	_, err = res.Write([]byte(result))
+	if err != nil {
+		res.WriteHeader(http.StatusBadRequest)
+	}
+	res.WriteHeader(http.StatusCreated)
 
 }
 
