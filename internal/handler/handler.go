@@ -35,6 +35,7 @@ func TextPlainPage(res http.ResponseWriter, req *http.Request) {
 	res.WriteHeader(http.StatusCreated)
 
 	res.Write([]byte(result))
+
 }
 
 func GetTextPlainPage(res http.ResponseWriter, req *http.Request) {
@@ -42,10 +43,10 @@ func GetTextPlainPage(res http.ResponseWriter, req *http.Request) {
 		res.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	if req.Header.Get("Content-Type") != "text/plain" {
-		res.WriteHeader(http.StatusBadRequest)
-		return
-	}
+	//if req.Header.Get("Content-Type") != "text/plain" {
+	//	res.WriteHeader(http.StatusBadRequest)
+	//	return
+	//}
 	id := req.PathValue("id")
 	resUrl, err := service.DeHashText(id)
 	if err != nil {
