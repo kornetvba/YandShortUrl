@@ -150,7 +150,7 @@ func TestGetTextPlainPage(t *testing.T) {
 			mux.ServeHTTP(w, req)
 			res := w.Result()
 			defer func() {
-				err := req.Body.Close()
+				err := res.Body.Close()
 				if err != nil {
 					log.Printf("Body close error: %v", err)
 				}
