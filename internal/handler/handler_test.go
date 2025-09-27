@@ -149,6 +149,12 @@ func TestGetTextPlainPage(t *testing.T) {
 			w := httptest.NewRecorder()
 			mux.ServeHTTP(w, req)
 			res := w.Result()
+			defer func() {
+				err := req.Body.Close()
+				if err != nil {
+					log.Printf("Body close error: %v", err)
+				}
+			}()
 			require.Equal(t, test.statusCode, res.StatusCode)
 			if res.StatusCode == http.StatusTemporaryRedirect {
 				assert.Equal(t, res.Header.Get("Location"), test.bodyURL)
