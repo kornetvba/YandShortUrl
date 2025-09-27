@@ -17,7 +17,7 @@ func TextPlainPage(res http.ResponseWriter, req *http.Request) {
 		res.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	PostText, err := io.ReadAll(req.Body)
+
 	defer func() {
 		err := req.Body.Close()
 		if err != nil {
@@ -25,7 +25,7 @@ func TextPlainPage(res http.ResponseWriter, req *http.Request) {
 		}
 
 	}()
-
+	PostText, err := io.ReadAll(req.Body)
 	if err != nil {
 		res.WriteHeader(http.StatusBadRequest)
 		return
