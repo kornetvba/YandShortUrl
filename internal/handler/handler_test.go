@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"github.com/kornetvba/YandShortUrl/internal/service"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -106,18 +107,45 @@ func TestGetTextPlainPage(t *testing.T) {
 			pathId:     "b8d369a6",
 			bodyURL:    "http://htgfnn.yandex/nubcnadqasd",
 		},
+		{
+			name:       "test2",
+			httpMethod: http.MethodPost,
+			statusCode: http.StatusBadRequest,
+			pathId:     "b8d369a6",
+			bodyURL:    "http://htgfnn.yandex/nubcnadqasd",
+		},
+		{
+			name:       "test3",
+			httpMethod: http.MethodDelete,
+			statusCode: http.StatusBadRequest,
+			pathId:     "b8d369a6",
+			bodyURL:    "http://htgfnn.yandex/nubcnadqasd",
+		},
+		{
+			name:       "test4",
+			httpMethod: http.MethodPost,
+			statusCode: http.StatusBadRequest,
+			pathId:     "ee136682",
+			bodyURL:    "http://htgfnn.yandex/nubcnadqasd321",
+		},
 	}
 
 	for _, test := range TableTests {
 
 		t.Run(test.name, func(t *testing.T) {
 			_, _ = service.HashPlainText([]byte(test.bodyURL))
-			req := httptest.NewRequest(test.httpMethod, "/b8d369a6", nil)
+
+			mux := http.NewServeMux()
+			mux.HandleFunc("/{id}", GetTextPlainPage)
+
+			req := httptest.NewRequest(test.httpMethod, fmt.Sprintf("/%s", test.pathId), nil)
 			w := httptest.NewRecorder()
-			GetTextPlainPage(w, req)
+			mux.ServeHTTP(w, req)
 			res := w.Result()
 			require.Equal(t, test.statusCode, res.StatusCode)
-
+			if res.StatusCode == http.StatusTemporaryRedirect {
+				assert.Equal(t, res.Header.Get("Location"), test.bodyURL)
+			}
 		})
 	}
 
