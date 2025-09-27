@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"io"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
@@ -78,12 +79,18 @@ func TestTextPlainPage(t *testing.T) {
 			if res.StatusCode == http.StatusCreated {
 				//content-type
 				assert.Equal(t, test.contentType, res.Header.Get("Content-Type"))
-				//read body
-				defer res.Body.Close()
+				//body
+				defer func() {
+					err := res.Body.Close()
+					if err != nil {
+						log.Printf("body close error: %v", err)
+					}
+
+				}()
 				resBody, err := io.ReadAll(res.Body)
 				require.NoError(t, err)
 				assert.Equal(t, test.resBody, string(resBody))
-				//content-lenght
+				//content-len
 				assert.Equal(t, strconv.Itoa(len(test.resBody)), res.Header.Get("Content-Length"))
 
 			}
@@ -97,35 +104,35 @@ func TestGetTextPlainPage(t *testing.T) {
 		name       string
 		httpMethod string
 		statusCode int
-		pathId     string
+		pathID     string
 		bodyURL    string
 	}{
 		{
 			name:       "test1",
 			httpMethod: http.MethodGet,
 			statusCode: http.StatusTemporaryRedirect,
-			pathId:     "b8d369a6",
+			pathID:     "b8d369a6",
 			bodyURL:    "http://htgfnn.yandex/nubcnadqasd",
 		},
 		{
 			name:       "test2",
 			httpMethod: http.MethodPost,
 			statusCode: http.StatusBadRequest,
-			pathId:     "b8d369a6",
+			pathID:     "b8d369a6",
 			bodyURL:    "http://htgfnn.yandex/nubcnadqasd",
 		},
 		{
 			name:       "test3",
 			httpMethod: http.MethodDelete,
 			statusCode: http.StatusBadRequest,
-			pathId:     "b8d369a6",
+			pathID:     "b8d369a6",
 			bodyURL:    "http://htgfnn.yandex/nubcnadqasd",
 		},
 		{
 			name:       "test4",
 			httpMethod: http.MethodPost,
 			statusCode: http.StatusBadRequest,
-			pathId:     "ee136682",
+			pathID:     "ee136682",
 			bodyURL:    "http://htgfnn.yandex/nubcnadqasd321",
 		},
 	}
@@ -138,7 +145,7 @@ func TestGetTextPlainPage(t *testing.T) {
 			mux := http.NewServeMux()
 			mux.HandleFunc("/{id}", GetTextPlainPage)
 
-			req := httptest.NewRequest(test.httpMethod, fmt.Sprintf("/%s", test.pathId), nil)
+			req := httptest.NewRequest(test.httpMethod, fmt.Sprintf("/%s", test.pathID), nil)
 			w := httptest.NewRecorder()
 			mux.ServeHTTP(w, req)
 			res := w.Result()
