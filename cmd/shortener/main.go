@@ -6,6 +6,7 @@ import (
 )
 
 func run() error {
+	gin.SetMode(gin.ReleaseMode)
 	//mux := http.NewServeMux()
 	//mux.HandleFunc("/", handler.TextPlainPage)
 	//	mux.HandleFunc("/{id}", handler.GetTextPlainPage)

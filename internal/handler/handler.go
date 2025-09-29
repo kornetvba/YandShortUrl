@@ -53,10 +53,10 @@ func GetTextPlainPage(c *gin.Context) {
 		return
 	}
 
-	if c.ContentType() != "text/plain" {
-		c.String(http.StatusBadRequest, "")
-		return
-	}
+	//if c.ContentType() != "text/plain" {
+	//	c.String(http.StatusBadRequest, "")
+	//	return
+	//}
 
 	id := c.Param("id")
 	resURL, err := service.DeHashText(id)
