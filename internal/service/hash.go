@@ -24,6 +24,5 @@ func DeHashText(id string) ([]byte, error) {
 	if !ok {
 		return nil, fmt.Errorf("id not found")
 	}
-
 	return value, nil
 }

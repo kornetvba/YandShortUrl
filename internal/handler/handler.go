@@ -2,70 +2,70 @@ package handler
 
 import (
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"github.com/kornetvba/YandShortUrl/internal/service"
-	"io"
 	"log"
 	"net/http"
 )
 
-func TextPlainPage(res http.ResponseWriter, req *http.Request) {
-	if req.Method != http.MethodPost {
-		res.WriteHeader(http.StatusBadRequest)
-		return
-	}
-	if req.Header.Get("Content-Type") != "text/plain" {
-		res.WriteHeader(http.StatusBadRequest)
+func TextPlainPage(c *gin.Context) {
+
+	if c.Request.Method != http.MethodPost {
+		c.String(http.StatusBadRequest, "")
 		return
 	}
 
-	defer func() {
-		err := req.Body.Close()
-		if err != nil {
-			log.Printf("Body close error: %v", err)
-		}
+	if c.ContentType() != "text/plain" {
+		c.String(http.StatusBadRequest, "")
+		return
+	}
 
-	}()
-	PostText, err := io.ReadAll(req.Body)
+	postTest, err := c.GetRawData()
 	if err != nil {
-		res.WriteHeader(http.StatusBadRequest)
-		return
-	}
-	hashText, errors := service.HashPlainText(PostText)
-
-	if errors != nil {
-		res.WriteHeader(http.StatusBadRequest)
+		c.String(http.StatusBadRequest, "")
 		return
 	}
 
-	result := fmt.Sprintf("%s%s%s%s", "http://", req.Host, req.URL.String(), hashText)
-	res.Header().Set("Content-Type", "text/plain")
-	res.Header().Set("Content-Length", fmt.Sprint(len(result)))
-	res.WriteHeader(http.StatusCreated)
-	_, err = res.Write([]byte(result))
+	hashText, err := service.HashPlainText(postTest)
 	if err != nil {
-		log.Printf("Body err: %v", err)
+		c.String(http.StatusBadRequest, "")
 		return
+	}
+
+	resultResText := fmt.Sprintf("%s%s%s%s", "http://", c.Request.Host, c.Request.URL.String(), hashText)
+
+	c.Header("Content-Type", "text/plain")
+	c.Header("Content-Length", fmt.Sprint(len(resultResText)))
+	c.Writer.WriteHeader(http.StatusCreated)
+	_, err = c.Writer.Write([]byte(resultResText))
+	if err != nil {
+		// Логируем ошибку, но НЕ отправляем новый ответ клиенту
+		log.Printf("Failed to write response: %v", err)
+		return // Прерываем выполнение
 	}
 
 }
 
-func GetTextPlainPage(res http.ResponseWriter, req *http.Request) {
-	if req.Method != http.MethodGet {
-		res.WriteHeader(http.StatusBadRequest)
-		return
-	}
-	//if req.Header.Get("Content-Type") != "text/plain" {
-	//	res.WriteHeader(http.StatusBadRequest)
-	//	return
-	//}
-	id := req.PathValue("id")
-	resURL, err := service.DeHashText(id)
-	if err != nil {
-		res.WriteHeader(http.StatusBadRequest)
+func GetTextPlainPage(c *gin.Context) {
+
+	if c.Request.Method != http.MethodGet {
+		c.String(http.StatusBadRequest, "")
 		return
 	}
 
-	res.Header().Set("Location", string(resURL))
-	res.WriteHeader(http.StatusTemporaryRedirect)
+	if c.ContentType() != "text/plain" {
+		c.String(http.StatusBadRequest, "")
+		return
+	}
+
+	id := c.Param("id")
+	resURL, err := service.DeHashText(id)
+
+	if err != nil {
+		c.String(http.StatusBadRequest, "")
+		return
+	}
+	c.Writer.Header().Set("Location", string(resURL))
+	c.Writer.WriteHeader(http.StatusTemporaryRedirect)
 
 }

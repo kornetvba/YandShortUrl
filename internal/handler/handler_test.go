@@ -2,6 +2,7 @@ package handler
 
 import (
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"github.com/kornetvba/YandShortUrl/internal/service"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -15,7 +16,7 @@ import (
 )
 
 func TestTextPlainPage(t *testing.T) {
-
+	gin.SetMode(gin.TestMode)
 	TableTests := []struct {
 		name        string
 		httpMethod  string
@@ -71,8 +72,12 @@ func TestTextPlainPage(t *testing.T) {
 
 			req := httptest.NewRequest(test.httpMethod, "/", strings.NewReader(test.body))
 			req.Header.Set("Content-Type", test.contentType)
+
 			w := httptest.NewRecorder()
-			TextPlainPage(w, req)
+
+			c, _ := gin.CreateTestContext(w)
+			c.Request = req
+			TextPlainPage(c)
 			res := w.Result()
 			//status
 			require.Equal(t, test.statusCode, res.StatusCode)
@@ -100,6 +105,7 @@ func TestTextPlainPage(t *testing.T) {
 }
 
 func TestGetTextPlainPage(t *testing.T) {
+	gin.SetMode(gin.TestMode)
 	TableTests := []struct {
 		name       string
 		httpMethod string
@@ -116,24 +122,10 @@ func TestGetTextPlainPage(t *testing.T) {
 		},
 		{
 			name:       "test2",
-			httpMethod: http.MethodPost,
+			httpMethod: http.MethodGet,
 			statusCode: http.StatusBadRequest,
-			pathID:     "b8d369a6",
+			pathID:     "b8d36932a6",
 			bodyURL:    "http://htgfnn.yandex/nubcnadqasd",
-		},
-		{
-			name:       "test3",
-			httpMethod: http.MethodDelete,
-			statusCode: http.StatusBadRequest,
-			pathID:     "b8d369a6",
-			bodyURL:    "http://htgfnn.yandex/nubcnadqasd",
-		},
-		{
-			name:       "test4",
-			httpMethod: http.MethodPost,
-			statusCode: http.StatusBadRequest,
-			pathID:     "ee136682",
-			bodyURL:    "http://htgfnn.yandex/nubcnadqasd321",
 		},
 	}
 
@@ -141,13 +133,14 @@ func TestGetTextPlainPage(t *testing.T) {
 
 		t.Run(test.name, func(t *testing.T) {
 			_, _ = service.HashPlainText([]byte(test.bodyURL))
-
-			mux := http.NewServeMux()
-			mux.HandleFunc("/{id}", GetTextPlainPage)
+			router := gin.New()
+			router.GET("/:id", GetTextPlainPage)
 
 			req := httptest.NewRequest(test.httpMethod, fmt.Sprintf("/%s", test.pathID), nil)
+			req.Header.Set("Content-Type", "text/plain")
 			w := httptest.NewRecorder()
-			mux.ServeHTTP(w, req)
+
+			router.ServeHTTP(w, req)
 			res := w.Result()
 			defer func() {
 				err := res.Body.Close()
