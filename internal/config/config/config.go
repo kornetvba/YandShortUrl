@@ -35,7 +35,6 @@ func (a *NetAddr) Set(adr string) error {
 	a.Port = port
 	a.Host = argValues[0]
 	return nil
-
 }
 
 var ResultURL string
@@ -44,6 +43,6 @@ func ParseFlags() {
 
 	_ = flag.Value(Addr)
 	flag.Var(Addr, "a", "Net address host:port")
-	flag.StringVar(&ResultURL, "b", "http://localhost:8000", "result url")
+	flag.StringVar(&ResultURL, "b", "http://localhost:8080", "result url")
 	flag.Parse()
 }
