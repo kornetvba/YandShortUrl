@@ -3,6 +3,7 @@ package handler
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/kornetvba/YandShortUrl/internal/config/config"
 	"github.com/kornetvba/YandShortUrl/internal/service"
 	"log"
 	"net/http"
@@ -32,7 +33,7 @@ func TextPlainPage(c *gin.Context) {
 		return
 	}
 
-	resultResText := fmt.Sprintf("%s%s%s%s", "http://", c.Request.Host, c.Request.URL.String(), hashText)
+	resultResText := fmt.Sprintf("%s%s%s%s", "http://", config.ResultUrl, "/", hashText)
 
 	c.Header("Content-Type", "text/plain")
 	c.Header("Content-Length", fmt.Sprint(len(resultResText)))

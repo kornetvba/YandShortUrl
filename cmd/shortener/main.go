@@ -1,11 +1,19 @@
 package main
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/kornetvba/YandShortUrl/internal/config/config"
 	"github.com/kornetvba/YandShortUrl/internal/handler"
+	"log"
 )
 
+func init() {
+	config.ParseFlags()
+}
+
 func run() error {
+
 	gin.SetMode(gin.ReleaseMode)
 	//mux := http.NewServeMux()
 	//mux.HandleFunc("/", handler.TextPlainPage)
@@ -16,13 +24,14 @@ func run() error {
 	r := gin.Default()
 	r.POST("/", handler.TextPlainPage)
 	r.GET("/:id", handler.GetTextPlainPage)
+	fmt.Println("port in", config.Addr.Port)
 
-	return r.Run()
+	return r.Run(fmt.Sprintf(":%d", config.Addr.Port))
 
 }
 
 func main() {
 	if err := run(); err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 }
