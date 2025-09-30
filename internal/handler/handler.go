@@ -33,7 +33,7 @@ func TextPlainPage(c *gin.Context) {
 		return
 	}
 
-	resultResText := fmt.Sprintf("%s%s%s%s", "http://", config.ResultURL, "/", hashText)
+	resultResText := fmt.Sprintf("%s%s%s", config.ResultURL, "/", hashText)
 
 	c.Header("Content-Type", "text/plain")
 	c.Header("Content-Length", fmt.Sprint(len(resultResText)))

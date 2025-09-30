@@ -44,6 +44,6 @@ func ParseFlags() {
 
 	_ = flag.Value(Addr)
 	flag.Var(Addr, "a", "Net address host:port")
-	flag.StringVar(&ResultURL, "b", "localhost:8080", "result url")
+	flag.StringVar(&ResultURL, "b", "http://localhost:8000", "result url")
 	flag.Parse()
 }
