@@ -3,6 +3,7 @@ package config
 import (
 	"errors"
 	"flag"
+	"os"
 	"strconv"
 	"strings"
 )
@@ -45,4 +46,15 @@ func ParseFlags() {
 	flag.Var(Addr, "a", "Net address host:port")
 	flag.StringVar(&ResultURL, "b", "http://localhost:8080", "result url")
 	flag.Parse()
+
+	if envRunBaseURL, ok := os.LookupEnv("BASE_URL"); ok != false {
+		ResultURL = envRunBaseURL
+	}
+	if envRunAddr, ok := os.LookupEnv("SERVER_ADDRESS"); ok != false {
+		err := Addr.Set(envRunAddr)
+		if err != nil {
+			err.Error()
+		}
+	}
+
 }

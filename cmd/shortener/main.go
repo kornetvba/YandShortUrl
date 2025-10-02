@@ -24,7 +24,6 @@ func run() error {
 	r := gin.Default()
 	r.POST("/", handler.TextPlainPage)
 	r.GET("/:id", handler.GetTextPlainPage)
-	fmt.Println("port in", config.Addr.Port)
 
 	return r.Run(fmt.Sprintf(":%d", config.Addr.Port))
 
