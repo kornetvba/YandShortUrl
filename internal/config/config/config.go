@@ -43,7 +43,7 @@ var (
 	LevelLog  string
 )
 
-func ParseFlags() {
+func ParseFlags() error {
 
 	_ = flag.Value(Addr)
 	flag.Var(Addr, "a", "Net address host:port")
@@ -61,8 +61,9 @@ func ParseFlags() {
 	if envRunAddr, ok := os.LookupEnv("SERVER_ADDRESS"); ok {
 		err := Addr.Set(envRunAddr)
 		if err != nil {
-			err.Error()
+			return err
 		}
 	}
+	return nil
 
 }

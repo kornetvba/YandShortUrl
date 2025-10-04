@@ -11,7 +11,10 @@ import (
 )
 
 func init() {
-	config.ParseFlags()
+	err := config.ParseFlags()
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func run() error {
