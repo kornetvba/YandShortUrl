@@ -38,19 +38,27 @@ func (a *NetAddr) Set(adr string) error {
 	return nil
 }
 
-var ResultURL string
+var (
+	ResultURL string
+	LevelLog  string
+)
 
 func ParseFlags() {
 
 	_ = flag.Value(Addr)
 	flag.Var(Addr, "a", "Net address host:port")
 	flag.StringVar(&ResultURL, "b", "http://localhost:8080", "result url")
+	flag.StringVar(&LevelLog, "l", "info", "level logger")
 	flag.Parse()
 
-	if envRunBaseURL, ok := os.LookupEnv("BASE_URL"); ok != false {
+	if envRunBaseURL, ok := os.LookupEnv("BASE_URL"); ok {
 		ResultURL = envRunBaseURL
 	}
-	if envRunAddr, ok := os.LookupEnv("SERVER_ADDRESS"); ok != false {
+	if logLevel, ok := os.LookupEnv("LEVEL_LOG"); ok {
+		LevelLog = logLevel
+	}
+
+	if envRunAddr, ok := os.LookupEnv("SERVER_ADDRESS"); ok {
 		err := Addr.Set(envRunAddr)
 		if err != nil {
 			err.Error()
