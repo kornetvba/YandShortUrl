@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/kornetvba/YandShortUrl/internal/config/config"
@@ -85,7 +86,17 @@ func PostUrl(c *gin.Context) {
 		return
 	}
 
-	if err := c.ShouldBindJSON(&reqU); err != nil {
+	//	if err := c.ShouldBindJSON(&reqU); err != nil {
+	//	c.String(http.StatusInternalServerError, "")
+	//	return
+	//}
+	data, err := c.GetRawData()
+	if err != nil {
+		c.String(http.StatusInternalServerError, "")
+		return
+	}
+	err = json.Unmarshal(data, &reqU)
+	if err != nil {
 		c.String(http.StatusInternalServerError, "")
 		return
 	}
@@ -96,6 +107,9 @@ func PostUrl(c *gin.Context) {
 		return
 	}
 	resU.Result = fmt.Sprintf("%s%s%s", config.ResultURL, "/", res)
-	c.JSON(http.StatusCreated, resU)
+	resp, err := json.Marshal(resU)
+	c.Writer.WriteHeader(http.StatusCreated)
+	c.Writer.Header().Set("Content-Type", "application/json")
+	c.Writer.Write(resp)
 
 }
