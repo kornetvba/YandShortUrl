@@ -70,3 +70,32 @@ func GetTextPlainPage(c *gin.Context) {
 	c.Writer.WriteHeader(http.StatusTemporaryRedirect)
 
 }
+
+func PostUrl(c *gin.Context) {
+	type requestUrl struct {
+		Url string `json:"url"`
+	}
+	type responseUrl struct {
+		Result string `json:"result"`
+	}
+	var reqU requestUrl
+	var resU responseUrl
+	if c.GetHeader("Content-type") != "application/json" {
+		c.String(http.StatusInternalServerError, "")
+		return
+	}
+
+	if err := c.ShouldBindJSON(&reqU); err != nil {
+		c.String(http.StatusInternalServerError, "")
+		return
+	}
+
+	res, err := service.HashPlainText([]byte(reqU.Url))
+	if err != nil {
+		c.String(http.StatusInternalServerError, "")
+		return
+	}
+	resU.Result = fmt.Sprintf("%s%s%s", config.ResultURL, "/", res)
+	c.JSON(http.StatusCreated, resU)
+
+}

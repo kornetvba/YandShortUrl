@@ -36,6 +36,7 @@ func run() error {
 	r.Use(logger.HTTPLoggerMiddleWare())
 	r.Use(gin.Recovery())
 	r.POST("/", handler.TextPlainPage)
+	r.POST("/api/shorten", handler.PostUrl)
 	r.GET("/:id", handler.GetTextPlainPage)
 
 	return r.Run(fmt.Sprintf(":%d", config.Addr.Port))

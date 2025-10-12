@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/kornetvba/YandShortUrl/internal/service"
@@ -155,4 +157,83 @@ func TestGetTextPlainPage(t *testing.T) {
 		})
 	}
 
+}
+
+func TestPostUrl(t *testing.T) {
+	type TestRequestUrl struct {
+		Url string `json:"url"`
+	}
+	type TestResponseUrl struct {
+		Result string `json:"result"`
+	}
+	respUrl := TestResponseUrl{}
+	tableTest := []struct {
+		name        string
+		reqBody     TestRequestUrl
+		want        TestResponseUrl
+		status      int
+		contentType string
+		method      string
+	}{
+		{
+			name:        "Test1",
+			reqBody:     TestRequestUrl{Url: "youtube.com321"},
+			want:        TestResponseUrl{Result: "/a80f7ccb"},
+			status:      http.StatusCreated,
+			contentType: "application/json",
+			method:      http.MethodPost,
+		},
+		{
+			name:        "Test2",
+			reqBody:     TestRequestUrl{Url: "youtube.com3221"},
+			want:        TestResponseUrl{Result: "/a80f7ccb"},
+			status:      http.StatusNotFound,
+			contentType: "application/json",
+			method:      http.MethodGet,
+		},
+		{
+			name:        "Test3",
+			reqBody:     TestRequestUrl{Url: "youtube.com321"},
+			want:        TestResponseUrl{Result: "/a80f7ccb"},
+			status:      http.StatusCreated,
+			contentType: "application/json",
+			method:      http.MethodPost,
+		},
+	}
+	for _, ts := range tableTest {
+		t.Run(ts.name, func(t *testing.T) {
+
+			data, err := json.Marshal(ts.reqBody)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			req, err := http.NewRequest(ts.method, "/", bytes.NewReader(data))
+			if err != nil {
+				log.Fatal(err)
+			}
+			req.Header.Set("Content-Type", ts.contentType)
+			router := gin.New()
+			router.POST("/", PostUrl)
+			w := httptest.NewRecorder()
+			router.ServeHTTP(w, req)
+			res := w.Result()
+
+			//	req.Header.Set("Content-Type", ts.contentType)
+			//	w := httptest.NewRecorder()
+			//	c, _ := gin.CreateTestContext(w)
+			//	c.Request = req
+			//	PostUrl(c)
+			//	res := w.Result()
+
+			assert.Equal(t, ts.status, res.StatusCode)
+			if res.StatusCode == http.StatusCreated {
+				if err = json.NewDecoder(res.Body).Decode(&respUrl); err != nil {
+					log.Fatal(err)
+				}
+				assert.Equal(t, ts.want, respUrl)
+
+			}
+		})
+	}
 }
