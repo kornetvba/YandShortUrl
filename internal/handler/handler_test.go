@@ -159,42 +159,42 @@ func TestGetTextPlainPage(t *testing.T) {
 
 }
 
-func TestPostUrl(t *testing.T) {
-	type TestRequestUrl struct {
-		Url string `json:"url"`
+func TestPostURL(t *testing.T) {
+	type TestRequestURL struct {
+		URL string `json:"url"`
 	}
-	type TestResponseUrl struct {
+	type TestResponseURL struct {
 		Result string `json:"result"`
 	}
-	respUrl := TestResponseUrl{}
+	respURL := TestResponseURL{}
 	tableTest := []struct {
 		name        string
-		reqBody     TestRequestUrl
-		want        TestResponseUrl
+		reqBody     TestRequestURL
+		want        TestResponseURL
 		status      int
 		contentType string
 		method      string
 	}{
 		{
 			name:        "Test1",
-			reqBody:     TestRequestUrl{Url: "youtube.com321"},
-			want:        TestResponseUrl{Result: "/a80f7ccb"},
+			reqBody:     TestRequestURL{URL: "youtube.com321"},
+			want:        TestResponseURL{Result: "/a80f7ccb"},
 			status:      http.StatusCreated,
 			contentType: "application/json",
 			method:      http.MethodPost,
 		},
 		{
 			name:        "Test2",
-			reqBody:     TestRequestUrl{Url: "youtube.com3221"},
-			want:        TestResponseUrl{Result: "/a80f7ccb"},
+			reqBody:     TestRequestURL{URL: "youtube.com3221"},
+			want:        TestResponseURL{Result: "/a80f7ccb"},
 			status:      http.StatusNotFound,
 			contentType: "application/json",
 			method:      http.MethodGet,
 		},
 		{
 			name:        "Test3",
-			reqBody:     TestRequestUrl{Url: "youtube.com321"},
-			want:        TestResponseUrl{Result: "/a80f7ccb"},
+			reqBody:     TestRequestURL{URL: "youtube.com321"},
+			want:        TestResponseURL{Result: "/a80f7ccb"},
 			status:      http.StatusCreated,
 			contentType: "application/json",
 			method:      http.MethodPost,
@@ -214,10 +214,16 @@ func TestPostUrl(t *testing.T) {
 			}
 			req.Header.Set("Content-Type", ts.contentType)
 			router := gin.New()
-			router.POST("/", PostUrl)
+			router.POST("/", PostURL)
 			w := httptest.NewRecorder()
 			router.ServeHTTP(w, req)
 			res := w.Result()
+			defer func() {
+				err = res.Body.Close()
+				if err != nil {
+					log.Printf("Body close error: %v", err)
+				}
+			}()
 
 			//	req.Header.Set("Content-Type", ts.contentType)
 			//	w := httptest.NewRecorder()
@@ -228,10 +234,10 @@ func TestPostUrl(t *testing.T) {
 
 			assert.Equal(t, ts.status, res.StatusCode)
 			if res.StatusCode == http.StatusCreated {
-				if err = json.NewDecoder(res.Body).Decode(&respUrl); err != nil {
+				if err = json.NewDecoder(res.Body).Decode(&respURL); err != nil {
 					log.Fatal(err)
 				}
-				assert.Equal(t, ts.want, respUrl)
+				assert.Equal(t, ts.want, respURL)
 
 			}
 		})

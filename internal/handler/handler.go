@@ -72,15 +72,15 @@ func GetTextPlainPage(c *gin.Context) {
 
 }
 
-func PostUrl(c *gin.Context) {
-	type requestUrl struct {
-		Url string `json:"url"`
+func PostURL(c *gin.Context) {
+	type requestURL struct {
+		URL string `json:"url"`
 	}
-	type responseUrl struct {
+	type responseURL struct {
 		Result string `json:"result"`
 	}
-	var reqU requestUrl
-	var resU responseUrl
+	var reqU requestURL
+	var resU responseURL
 	if c.GetHeader("Content-type") != "application/json" {
 		c.String(http.StatusInternalServerError, "")
 		return
@@ -101,13 +101,17 @@ func PostUrl(c *gin.Context) {
 		return
 	}
 
-	res, err := service.HashPlainText([]byte(reqU.Url))
+	res, err := service.HashPlainText([]byte(reqU.URL))
 	if err != nil {
 		c.String(http.StatusInternalServerError, "")
 		return
 	}
 	resU.Result = fmt.Sprintf("%s%s%s", config.ResultURL, "/", res)
 	resp, err := json.Marshal(resU)
+	if err != nil {
+		c.String(http.StatusInternalServerError, "")
+		return
+	}
 	c.Writer.WriteHeader(http.StatusCreated)
 	c.Writer.Header().Set("Content-Type", "application/json")
 	c.Writer.Write(resp)
