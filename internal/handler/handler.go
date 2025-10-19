@@ -37,7 +37,7 @@ func TextPlainPage(c *gin.Context) {
 	resultResText := fmt.Sprintf("%s%s%s", config.ResultURL, "/", hashText)
 
 	c.Header("Content-Type", "text/plain")
-	c.Header("Content-Length", fmt.Sprint(len(resultResText)))
+	//c.Header("Content-Length", fmt.Sprint(len(resultResText)))
 	c.Writer.WriteHeader(http.StatusCreated)
 	_, err = c.Writer.Write([]byte(resultResText))
 	if err != nil {
