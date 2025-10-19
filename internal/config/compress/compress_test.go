@@ -89,6 +89,7 @@ func TestGzipCompressMiddleWare(t *testing.T) {
 			w := httptest.NewRecorder()
 			router.ServeHTTP(w, req)
 			res := w.Result()
+			defer res.Body.Close()
 			assert.Equal(t, res.Header.Get("Content-Encoding"), tt.respEnc.contentEncoding)
 			assert.Equal(t, res.Header.Get("Accept-Encoding"), tt.respEnc.acceptEncoding)
 			assert.Equal(t, res.StatusCode, tt.status)

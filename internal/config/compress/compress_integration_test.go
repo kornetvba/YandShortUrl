@@ -129,6 +129,8 @@ func TestCompressTextPlain(t *testing.T) {
 			}
 			router.ServeHTTP(w, req)
 			res := w.Result()
+			defer res.Body.Close()
+
 			assert.Equal(t, tt.status, res.StatusCode)
 			respBody, err := io.ReadAll(res.Body)
 			assert.NoError(t, err)
