@@ -54,7 +54,7 @@ func (f *FilePathType) Set(a string) error {
 		f.FilePath = a
 		return nil
 	}
-	return errors.New("Writing/reading to a file is disabled")
+	return errors.New("writing/reading to a file is disabled")
 }
 
 func (f *FilePathType) Dir() (dirs string) {

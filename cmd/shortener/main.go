@@ -53,7 +53,7 @@ func run() (*http.Server, error) {
 		Handler: r,
 	}
 	go func() {
-		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		if err = srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			logger.Log.Error("Server failed", zap.Error(err))
 		}
 	}()

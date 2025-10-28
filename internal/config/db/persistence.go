@@ -45,8 +45,8 @@ func (ur *URLRecords) GetRecord(shortURL string) (*URLRecord, error) {
 }
 
 func (ur *URLRecords) AppendRecords(filePath *config.FilePathType) error {
-	if filePath.IsEnabled() == false {
-		return errors.New("Writing/reading to a file is disabled")
+	if !filePath.IsEnabled() {
+		return errors.New("writing/reading to a file is disabled")
 	}
 	file, err := ReadFile(filePath)
 	if err != nil {
@@ -68,8 +68,8 @@ func (ur *URLRecords) AppendRecords(filePath *config.FilePathType) error {
 }
 
 func SaveFile(filePath *config.FilePathType) (err error) {
-	if filePath.IsEnabled() == false {
-		return errors.New("Writing/reading to a file is disabled")
+	if !filePath.IsEnabled() {
+		return errors.New("writing/reading to a file is disabled")
 	}
 	var existingData = make(map[string]bool)
 	filepath := filePath.Dir()
@@ -102,7 +102,7 @@ func SaveFile(filePath *config.FilePathType) (err error) {
 	}
 	for _, v := range URLStorages {
 		_, ok := existingData[v.ShortURL]
-		if ok == true {
+		if ok {
 			continue
 		}
 		if err = json.NewEncoder(file).Encode(&v); err != nil {
@@ -115,8 +115,8 @@ func SaveFile(filePath *config.FilePathType) (err error) {
 }
 
 func ReadFile(filePath *config.FilePathType) (*os.File, error) {
-	if filePath.IsEnabled() == false {
-		return nil, errors.New("Writing/reading to a file is disabled")
+	if !filePath.IsEnabled() {
+		return nil, errors.New("writing/reading to a file is disabled")
 	}
 	log.Print("Read json file...")
 	//if filename == "" {
