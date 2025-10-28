@@ -3,8 +3,8 @@ package config
 import (
 	"errors"
 	"flag"
-	"fmt"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 )
@@ -39,59 +39,34 @@ func (a *NetAddr) Set(adr string) error {
 	return nil
 }
 
-func RemoveIndSlice(data *[]string, s int) []string {
-	return append((*data)[:s], (*data)[s+1:]...)
-}
-
 type FilePathType struct {
-	FileName   string
-	Directorys []string
+	FilePath string
 }
 
-var FilePath = &FilePathType{FileName: "short-url-db.json", Directorys: []string{"temp"}}
+var FilePath = &FilePathType{FilePath: "/tmp/short-url-db.json"}
 
 func (f *FilePathType) String() (ds string) {
-	for _, v := range f.Directorys {
-		ds += fmt.Sprintf("%s%s", v, "/")
-	}
-	if ds == "" {
-		return f.FileName
-	}
-	return ds + f.FileName
+	return f.FilePath
 }
 
 func (f *FilePathType) Set(a string) error {
-	if a == "`" || a == "" || a == "``" || a == " " {
-		*f = FilePathType{}
+	if a != "" {
+		f.FilePath = a
 		return nil
 	}
-
-	*f = FilePathType{}
-
-	argsPath := strings.Split(a, "/")
-	for _, v := range argsPath {
-		if v == "" || v == " " {
-			continue
-		}
-		f.Directorys = append(f.Directorys, v)
-	}
-	f.FileName = f.Directorys[len(f.Directorys)-1]
-	f.Directorys = RemoveIndSlice(&f.Directorys, len(f.Directorys)-1)
-	return nil
+	return errors.New("Writing/reading to a file is disabled")
 }
 
 func (f *FilePathType) Dir() (dirs string) {
-	if len(f.Directorys) != 0 {
-		for _, dir := range f.Directorys {
-			dirs += fmt.Sprintf("%s%s", dir, "/")
-		}
-		return dirs
-	}
-	return ""
+
+	return filepath.Dir(f.FilePath)
 }
 
-func (f *FilePathType) GetDir() string {
-	return ""
+func (f *FilePathType) IsEnabled() bool {
+	if f.FilePath == "" || len(f.FilePath) < 5 {
+		return false
+	}
+	return true
 }
 
 var (
@@ -102,7 +77,7 @@ var (
 func ParseFlags() error {
 
 	_ = flag.Value(Addr)
-	_ = flag.Value(FilePath)
+
 	flag.Var(Addr, "a", "Net address host:port")
 	flag.StringVar(&ResultURL, "b", "http://localhost:8080", "result url")
 	flag.StringVar(&LevelLog, "l", "info", "level logger")
