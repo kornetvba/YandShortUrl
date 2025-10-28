@@ -2,10 +2,9 @@ package service
 
 import (
 	"fmt"
+	"github.com/kornetvba/YandShortUrl/internal/config/db"
 	"hash/fnv"
 )
-
-var HashMap = make(map[string][]byte)
 
 func HashPlainText(text []byte) (string, error) {
 	hashed := fnv.New32a()
@@ -14,15 +13,15 @@ func HashPlainText(text []byte) (string, error) {
 		return "", err
 	}
 	hashedText := hashed.Sum32()
-	HashMap[fmt.Sprintf("%08x", hashedText)] = text
-
+	_ = db.URLStorages.AppendRecord(fmt.Sprintf("%08x", hashedText), string(text))
 	return fmt.Sprintf("%08x", hashedText), nil
 }
 
-func DeHashText(id string) ([]byte, error) {
-	value, ok := HashMap[id]
-	if !ok {
-		return nil, fmt.Errorf("id not found")
+func DeHashText(shortURL string) ([]byte, error) {
+	record, err := db.URLStorages.GetRecord(shortURL)
+	if err != nil {
+		return nil, err
 	}
-	return value, nil
+
+	return []byte(record.OriginalURL), nil
 }

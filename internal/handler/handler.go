@@ -40,6 +40,7 @@ func TextPlainPage(c *gin.Context) {
 	//c.Header("Content-Length", fmt.Sprint(len(resultResText)))
 	c.Writer.WriteHeader(http.StatusCreated)
 	_, err = c.Writer.Write([]byte(resultResText))
+
 	if err != nil {
 		// Логируем ошибку, но НЕ отправляем новый ответ клиенту
 		log.Printf("Failed to write response: %v", err)
