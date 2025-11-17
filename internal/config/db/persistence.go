@@ -22,7 +22,19 @@ func NewURLRecord(shortURL string, originalURL string) *URLRecord {
 
 type URLRecords []URLRecord
 
-var URLStorages URLRecords
+func NewURLRecords() *URLRecords {
+	return &URLRecords{}
+}
+
+//var URLStorages URLRecords
+
+type URLStorage interface {
+	AppendRecord(string, string) error
+	GetRecord(string) (*URLRecord, error)
+	SaveRecords(*config.FilePathType) error
+	SaveFile(*config.FilePathType) (err error)
+	ReadFile(*config.FilePathType) (*os.File, error)
+}
 
 func (ur *URLRecords) AppendRecord(shortURL string, originalURL string) error {
 	double, _ := ur.GetRecord(shortURL)
@@ -44,11 +56,11 @@ func (ur *URLRecords) GetRecord(shortURL string) (*URLRecord, error) {
 	return nil, errors.New("id not found")
 }
 
-func (ur *URLRecords) AppendRecords(filePath *config.FilePathType) error {
+func (ur *URLRecords) SaveRecords(filePath *config.FilePathType) error {
 	if !filePath.IsEnabled() {
 		return errors.New("writing/reading to a file is disabled")
 	}
-	file, err := ReadFile(filePath)
+	file, err := ur.ReadFile(filePath)
 	if err != nil {
 		return err
 	}
@@ -67,7 +79,7 @@ func (ur *URLRecords) AppendRecords(filePath *config.FilePathType) error {
 	return scanner.Err()
 }
 
-func SaveFile(filePath *config.FilePathType) (err error) {
+func (ur *URLRecords) SaveFile(filePath *config.FilePathType) (err error) {
 	if !filePath.IsEnabled() {
 		return errors.New("writing/reading to a file is disabled")
 	}
@@ -100,7 +112,7 @@ func SaveFile(filePath *config.FilePathType) (err error) {
 	if err != nil {
 		return err
 	}
-	for _, v := range URLStorages {
+	for _, v := range *ur {
 		_, ok := existingData[v.ShortURL]
 		if ok {
 			continue
@@ -114,7 +126,7 @@ func SaveFile(filePath *config.FilePathType) (err error) {
 	return nil
 }
 
-func ReadFile(filePath *config.FilePathType) (*os.File, error) {
+func (ur *URLRecords) ReadFile(filePath *config.FilePathType) (*os.File, error) {
 	if !filePath.IsEnabled() {
 		return nil, errors.New("writing/reading to a file is disabled")
 	}

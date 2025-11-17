@@ -18,19 +18,7 @@ import (
 	"time"
 )
 
-func init() {
-	err := config.ParseFlags()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	err = db.URLStorages.AppendRecords(config.FilePath)
-	if err != nil {
-		log.Print(err)
-	}
-}
-
-func run() (*http.Server, error) {
+func run(URLHandler *handler.URLHandler) (*http.Server, error) {
 
 	gin.SetMode(gin.ReleaseMode)
 	err := logger.Initialization(config.LevelLog)
@@ -42,12 +30,14 @@ func run() (*http.Server, error) {
 	r := gin.New()
 	r.Use(logger.HTTPLoggerMiddleWare())
 	r.Use(compress.GzipCompressMiddleWare())
+
 	//r.Use(gz.Gzip(gz.BestCompression))
 
 	r.Use(gin.Recovery())
-	r.POST("/", handler.TextPlainPage)
-	r.POST("/api/shorten", handler.PostURL)
-	r.GET("/:id", handler.GetTextPlainPage)
+	r.POST("/", URLHandler.TextPlainPage)
+	r.POST("/api/shorten", URLHandler.PostURL)
+	r.GET("/:id", URLHandler.GetTextPlainPage)
+
 	srv := &http.Server{
 		Addr:    config.Addr.Host + ":" + strconv.Itoa(config.Addr.Port),
 		Handler: r,
@@ -62,7 +52,19 @@ func run() (*http.Server, error) {
 }
 
 func main() {
-	srv, err := run()
+	handlerURL := handler.NewURLHandler(db.NewURLRecords())
+
+	err := config.ParseFlags()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = handlerURL.Storage.SaveRecords(config.FilePath)
+	if err != nil {
+		log.Print(err)
+	}
+
+	srv, err := run(handlerURL)
 	if err != nil {
 		logger.Log.Error("serv not running", zap.Error(err))
 		return
@@ -70,7 +72,7 @@ func main() {
 
 	defer func() {
 		logger.Log.Info("Saving data to file...")
-		if err = db.SaveFile(config.FilePath); err != nil {
+		if err = handlerURL.Storage.SaveFile(config.FilePath); err != nil {
 			if err.Error() == "Writing/reading to a file is disabled" {
 				logger.Log.Info("Writing/reading to a file is disabled")
 				return

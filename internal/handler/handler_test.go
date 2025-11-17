@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/kornetvba/YandShortUrl/internal/config/db"
 	"github.com/kornetvba/YandShortUrl/internal/service"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -78,7 +79,8 @@ func TestTextPlainPage(t *testing.T) {
 
 			c, _ := gin.CreateTestContext(w)
 			c.Request = req
-			TextPlainPage(c)
+			handlerURL := NewURLHandler(db.NewURLRecords())
+			handlerURL.TextPlainPage(c)
 			res := w.Result()
 			//status
 			require.Equal(t, test.statusCode, res.StatusCode)
@@ -125,17 +127,22 @@ func TestGetTextPlainPage(t *testing.T) {
 			name:       "test2",
 			httpMethod: http.MethodGet,
 			statusCode: http.StatusBadRequest,
-			pathID:     "b8d36932a6",
-			bodyURL:    "http://htgfnn.yandex/nubcnadqasd",
+			pathID:     "b",
+			bodyURL:    "http://htex/nubcnadqasd",
 		},
 	}
 
 	for _, test := range TableTests {
 
 		t.Run(test.name, func(t *testing.T) {
-			_, _ = service.HashPlainText([]byte(test.bodyURL))
+			handlerURL := NewURLHandler(db.NewURLRecords())
+			hashURL, err := service.HashPlainText([]byte(test.bodyURL))
+			require.NoError(t, err)
+
+			_ = handlerURL.Storage.AppendRecord(hashURL, test.bodyURL)
+
 			router := gin.New()
-			router.GET("/:id", GetTextPlainPage)
+			router.GET("/:id", handlerURL.GetTextPlainPage)
 
 			req := httptest.NewRequest(test.httpMethod, fmt.Sprintf("/%s", test.pathID), nil)
 			req.Header.Set("Content-Type", "text/plain")
@@ -212,8 +219,10 @@ func TestPostURL(t *testing.T) {
 				log.Fatal(err)
 			}
 			req.Header.Set("Content-Type", ts.contentType)
+
 			router := gin.New()
-			router.POST("/", PostURL)
+			handlerURL := NewURLHandler(db.NewURLRecords())
+			router.POST("/", handlerURL.PostURL)
 			w := httptest.NewRecorder()
 			router.ServeHTTP(w, req)
 			res := w.Result()

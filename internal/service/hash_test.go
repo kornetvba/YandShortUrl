@@ -33,26 +33,3 @@ func TestHashPlainText(t *testing.T) {
 	}
 
 }
-
-func TestDeHashText(t *testing.T) {
-
-	tests := []struct {
-		name string
-		args string
-		want []byte
-	}{
-		{
-			name: "test1",
-			args: "ee136682",
-			want: []byte("http://htgfnn.yandex/nubcnadqasd321"),
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			_, _ = HashPlainText(tt.want)
-			got, _ := DeHashText(tt.args)
-
-			assert.Equalf(t, tt.want, got, "DeHashText(%v)", tt.args)
-		})
-	}
-}
