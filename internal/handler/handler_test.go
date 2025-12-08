@@ -5,7 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/kornetvba/YandShortUrl/internal/config/db"
+	"github.com/golang/mock/gomock"
+	"github.com/google/uuid"
+	"github.com/kornetvba/YandShortUrl/internal/repository"
+	mock_repository "github.com/kornetvba/YandShortUrl/internal/repository/mock"
 	"github.com/kornetvba/YandShortUrl/internal/service"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -79,7 +82,7 @@ func TestTextPlainPage(t *testing.T) {
 
 			c, _ := gin.CreateTestContext(w)
 			c.Request = req
-			handlerURL := NewURLHandler(db.NewURLRecords())
+			handlerURL := NewURLHandler(repository.NewURLRecords())
 			handlerURL.TextPlainPage(c)
 			res := w.Result()
 			//status
@@ -98,8 +101,6 @@ func TestTextPlainPage(t *testing.T) {
 				resBody, err := io.ReadAll(res.Body)
 				require.NoError(t, err)
 				assert.Equal(t, test.resBody, string(resBody))
-				//content-len
-				//assert.Equal(t, strconv.Itoa(len(test.resBody)), res.Header.Get("Content-Length"))
 
 			}
 		})
@@ -135,7 +136,7 @@ func TestGetTextPlainPage(t *testing.T) {
 	for _, test := range TableTests {
 
 		t.Run(test.name, func(t *testing.T) {
-			handlerURL := NewURLHandler(db.NewURLRecords())
+			handlerURL := NewURLHandler(repository.NewURLRecords())
 			hashURL, err := service.HashPlainText([]byte(test.bodyURL))
 			require.NoError(t, err)
 
@@ -221,7 +222,7 @@ func TestPostURL(t *testing.T) {
 			req.Header.Set("Content-Type", ts.contentType)
 
 			router := gin.New()
-			handlerURL := NewURLHandler(db.NewURLRecords())
+			handlerURL := NewURLHandler(repository.NewURLRecords())
 			router.POST("/", handlerURL.PostURL)
 			w := httptest.NewRecorder()
 			router.ServeHTTP(w, req)
@@ -250,4 +251,53 @@ func TestPostURL(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestGetTextPlainMock(t *testing.T) {
+	tableTests := []struct {
+		name       string
+		id         string
+		statusCode int
+		resp       *repository.URLRecord
+	}{
+		{
+			name:       "test1",
+			id:         "testIDRecord",
+			statusCode: http.StatusTemporaryRedirect,
+			resp: &repository.URLRecord{
+				ID:          uuid.New(),
+				ShortURL:    "shortURL",
+				OriginalURL: "originalURl",
+			},
+		},
+	}
+
+	for _, tt := range tableTests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+
+			m := mock_repository.NewMockURLStorage(ctrl)
+			m.EXPECT().GetRecord(tt.id).Return(tt.resp, nil)
+			app := NewURLHandler(m)
+
+			router := gin.New()
+			router.GET("/:id", app.GetTextPlainPage)
+
+			w := httptest.NewRecorder()
+			req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/%s", tt.id), nil)
+			require.NoError(t, err)
+
+			router.ServeHTTP(w, req)
+
+			resp := w.Result()
+			defer resp.Body.Close()
+
+			require.Equal(t, tt.statusCode, resp.StatusCode)
+			if resp.StatusCode == http.StatusTemporaryRedirect {
+				assert.Equal(t, tt.resp.OriginalURL, resp.Header.Get("Location"))
+			}
+
+		})
+	}
+
 }

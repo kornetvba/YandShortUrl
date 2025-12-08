@@ -5,16 +5,16 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/kornetvba/YandShortUrl/internal/config/config"
-	"github.com/kornetvba/YandShortUrl/internal/config/db"
+	"github.com/kornetvba/YandShortUrl/internal/repository"
 	"github.com/kornetvba/YandShortUrl/internal/service"
 	"net/http"
 )
 
 type URLHandler struct {
-	Storage db.URLStorage
+	Storage repository.URLStorage
 }
 
-func NewURLHandler(storage db.URLStorage) *URLHandler {
+func NewURLHandler(storage repository.URLStorage) *URLHandler {
 	return &URLHandler{Storage: storage}
 }
 

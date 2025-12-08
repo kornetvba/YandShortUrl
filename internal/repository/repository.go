@@ -1,4 +1,4 @@
-package db
+package repository
 
 import (
 	"bufio"
@@ -31,7 +31,7 @@ func NewURLRecords() *URLRecords {
 type URLStorage interface {
 	AppendRecord(string, string) error
 	GetRecord(string) (*URLRecord, error)
-	SaveRecords(*config.FilePathType) error
+	LoadRecords(*config.FilePathType) error
 	SaveFile(*config.FilePathType) (err error)
 	ReadFile(*config.FilePathType) (*os.File, error)
 }
@@ -56,7 +56,7 @@ func (ur *URLRecords) GetRecord(shortURL string) (*URLRecord, error) {
 	return nil, errors.New("id not found")
 }
 
-func (ur *URLRecords) SaveRecords(filePath *config.FilePathType) error {
+func (ur *URLRecords) LoadRecords(filePath *config.FilePathType) error {
 	if !filePath.IsEnabled() {
 		return errors.New("writing/reading to a file is disabled")
 	}

@@ -5,9 +5,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/kornetvba/YandShortUrl/internal/config/compress"
 	"github.com/kornetvba/YandShortUrl/internal/config/config"
-	"github.com/kornetvba/YandShortUrl/internal/config/db"
 	"github.com/kornetvba/YandShortUrl/internal/config/logger"
 	"github.com/kornetvba/YandShortUrl/internal/handler"
+	"github.com/kornetvba/YandShortUrl/internal/repository"
 	"go.uber.org/zap"
 	"log"
 	"net/http"
@@ -27,7 +27,7 @@ func run(URLHandler *handler.URLHandler) (*http.Server, error) {
 	}
 	logger.Log.Info("server is running", zap.String("address", config.Addr.String()))
 
-	r := gin.New()
+	r := gin.Default()
 	r.Use(logger.HTTPLoggerMiddleWare())
 	r.Use(compress.GzipCompressMiddleWare())
 
@@ -52,14 +52,14 @@ func run(URLHandler *handler.URLHandler) (*http.Server, error) {
 }
 
 func main() {
-	handlerURL := handler.NewURLHandler(db.NewURLRecords())
+	handlerURL := handler.NewURLHandler(repository.NewURLRecords())
 
 	err := config.ParseFlags()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	err = handlerURL.Storage.SaveRecords(config.FilePath)
+	err = handlerURL.Storage.LoadRecords(config.FilePath)
 	if err != nil {
 		log.Print(err)
 	}
