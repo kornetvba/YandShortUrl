@@ -1,0 +1,35 @@
+package service
+
+import (
+	"github.com/stretchr/testify/assert"
+	"testing"
+)
+
+func TestHashPlainText(t *testing.T) {
+	tableTests := []struct {
+		name   string
+		arg    []byte
+		result string
+	}{
+		{
+			name:   "test1",
+			arg:    []byte("http://htgfnn.yandex/nubcnadqasd321"),
+			result: "ee136682",
+		},
+		{
+			name:   "test2",
+			arg:    []byte("4c2432bf"),
+			result: "e3d70a5b",
+		},
+	}
+
+	for _, test := range tableTests {
+		t.Run(test.name, func(t *testing.T) {
+			hashResult, _ := HashPlainText(test.arg)
+			assert.Equal(t, test.result, hashResult)
+
+		})
+
+	}
+
+}
