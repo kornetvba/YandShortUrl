@@ -1,13 +1,16 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/kornetvba/YandShortUrl/internal/config/config"
+	"github.com/kornetvba/YandShortUrl/internal/config/db"
 	"github.com/kornetvba/YandShortUrl/internal/repository"
 	"github.com/kornetvba/YandShortUrl/internal/service"
 	"net/http"
+	"time"
 )
 
 type URLHandler struct {
@@ -116,4 +119,15 @@ func (mh *URLHandler) PostURL(c *gin.Context) {
 	c.Writer.Header().Set("Content-Type", "application/json")
 	c.Writer.Write(resp)
 
+}
+
+func (mh *URLHandler) PingHandler(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	err := db.DB.PingContext(ctx)
+	if err != nil {
+		c.Writer.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	c.Writer.WriteHeader(http.StatusOK)
 }

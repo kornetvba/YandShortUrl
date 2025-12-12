@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/kornetvba/YandShortUrl/internal/config/compress"
 	"github.com/kornetvba/YandShortUrl/internal/config/config"
+	"github.com/kornetvba/YandShortUrl/internal/config/db"
 	"github.com/kornetvba/YandShortUrl/internal/config/logger"
 	"github.com/kornetvba/YandShortUrl/internal/handler"
 	"github.com/kornetvba/YandShortUrl/internal/repository"
@@ -27,7 +28,7 @@ func run(URLHandler *handler.URLHandler) (*http.Server, error) {
 	}
 	logger.Log.Info("server is running", zap.String("address", config.Addr.String()))
 
-	r := gin.Default()
+	r := gin.New()
 	r.Use(logger.HTTPLoggerMiddleWare())
 	r.Use(compress.GzipCompressMiddleWare())
 
@@ -37,6 +38,7 @@ func run(URLHandler *handler.URLHandler) (*http.Server, error) {
 	r.POST("/", URLHandler.TextPlainPage)
 	r.POST("/api/shorten", URLHandler.PostURL)
 	r.GET("/:id", URLHandler.GetTextPlainPage)
+	r.GET("/ping", URLHandler.PingHandler)
 
 	srv := &http.Server{
 		Addr:    config.Addr.Host + ":" + strconv.Itoa(config.Addr.Port),
@@ -57,6 +59,12 @@ func main() {
 	err := config.ParseFlags()
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	database := db.Database{nil}
+	_, err = database.New(config.DatabaseDSN)
+	if err != nil {
+		log.Print(err)
 	}
 
 	err = handlerURL.Storage.LoadRecords(config.FilePath)
