@@ -5,8 +5,8 @@ import (
 	"database/sql"
 	"github.com/gin-gonic/gin"
 	"github.com/kornetvba/YandShortUrl/internal/backup"
-	"github.com/kornetvba/YandShortUrl/internal/backup/db_manager"
-	"github.com/kornetvba/YandShortUrl/internal/backup/memory_manager"
+	"github.com/kornetvba/YandShortUrl/internal/backup/dbmanager"
+	"github.com/kornetvba/YandShortUrl/internal/backup/memorymanager"
 	"github.com/kornetvba/YandShortUrl/internal/config/compress"
 	"github.com/kornetvba/YandShortUrl/internal/config/config"
 	"github.com/kornetvba/YandShortUrl/internal/config/db"
@@ -82,7 +82,7 @@ func main() {
 		//Создаем хендлер с хранилищем
 		handlerURL = handler.NewURLHandler(store)
 		//Создаем бэкап нашего хранилища
-		backupStore := db_manager.NewBackupStorage(store)
+		backupStore := dbmanager.NewBackupStorage(store)
 		backupStorage = backup.NewBackupManager(backupStore)
 
 		//Создаем таблицы
@@ -100,7 +100,7 @@ func main() {
 		defer con.Close()
 		store := memory.NewURLRecords()
 		handlerURL = handler.NewURLHandler(store)
-		backupMemory := memory_manager.NewBackupStorage(store)
+		backupMemory := memorymanager.NewBackupStorage(store)
 		backupStorage = backup.NewBackupManager(backupMemory)
 	}
 

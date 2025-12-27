@@ -13,7 +13,7 @@ func NewStore(db *sql.DB) *Store {
 	return &Store{Conn: db}
 }
 
-func (s Store) BootStrap() error {
+func (s *Store) BootStrap() error {
 	_, err := s.Conn.Exec(`
 		CREATE TABLE IF NOT EXISTS short_url_records (
 			id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -34,7 +34,7 @@ func (s Store) BootStrap() error {
 	return nil
 }
 
-func (s Store) AppendRecord(shortURL string, originalURL string) error {
+func (s *Store) AppendRecord(shortURL string, originalURL string) error {
 
 	_, err := s.Conn.Exec(`
 				INSERT INTO short_url_records ( shortened_url, original_url) 
@@ -46,11 +46,11 @@ func (s Store) AppendRecord(shortURL string, originalURL string) error {
 
 	return nil
 }
-func (s *Store) GetRecord(short_url string) (*repository.URLRecord, error) {
+func (s *Store) GetRecord(shortURL string) (*repository.URLRecord, error) {
 	row := s.Conn.QueryRow(`
 	SELECT * FROM short_url_records
 	WHERE shortened_url = $1
-	`, short_url)
+	`, shortURL)
 
 	var url repository.URLRecord
 	if row == nil {

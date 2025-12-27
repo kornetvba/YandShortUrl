@@ -1,4 +1,4 @@
-package db_manager
+package dbmanager
 
 import (
 	"bufio"
@@ -33,10 +33,10 @@ func (bs *BackupPG) SaveFile(filePath *config.FilePathType) (err error) {
 		}
 	}
 	file, err := os.OpenFile(filePath.String(), os.O_CREATE|os.O_APPEND|os.O_RDWR, 0777)
-	defer file.Close()
 	if err != nil {
 		return err
 	}
+	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
@@ -84,10 +84,10 @@ func (bs *BackupPG) DownloadRecords(filePath *config.FilePathType) error {
 		return errors.New("writing/reading to a file is disabled")
 	}
 	file, err := os.Open(filePath.String())
-	defer file.Close()
 	if err != nil {
 		return err
 	}
+	defer file.Close()
 
 	tx, err := bs.Store.Conn.Begin()
 	if err != nil {
