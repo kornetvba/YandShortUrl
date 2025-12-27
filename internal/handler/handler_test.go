@@ -8,6 +8,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/kornetvba/YandShortUrl/internal/repository"
+	"github.com/kornetvba/YandShortUrl/internal/repository/memory"
 	mock_repository "github.com/kornetvba/YandShortUrl/internal/repository/mock"
 	"github.com/kornetvba/YandShortUrl/internal/service"
 	"github.com/stretchr/testify/assert"
@@ -82,7 +83,7 @@ func TestTextPlainPage(t *testing.T) {
 
 			c, _ := gin.CreateTestContext(w)
 			c.Request = req
-			handlerURL := NewURLHandler(repository.NewURLRecords())
+			handlerURL := NewURLHandler(memory.NewURLRecords())
 			handlerURL.TextPlainPage(c)
 			res := w.Result()
 			//status
@@ -136,7 +137,7 @@ func TestGetTextPlainPage(t *testing.T) {
 	for _, test := range TableTests {
 
 		t.Run(test.name, func(t *testing.T) {
-			handlerURL := NewURLHandler(repository.NewURLRecords())
+			handlerURL := NewURLHandler(memory.NewURLRecords())
 			hashURL, err := service.HashPlainText([]byte(test.bodyURL))
 			require.NoError(t, err)
 
@@ -222,7 +223,7 @@ func TestPostURL(t *testing.T) {
 			req.Header.Set("Content-Type", ts.contentType)
 
 			router := gin.New()
-			handlerURL := NewURLHandler(repository.NewURLRecords())
+			handlerURL := NewURLHandler(memory.NewURLRecords())
 			router.POST("/", handlerURL.PostURL)
 			w := httptest.NewRecorder()
 			router.ServeHTTP(w, req)

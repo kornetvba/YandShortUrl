@@ -5,7 +5,7 @@ import (
 	"compress/gzip"
 	"github.com/gin-gonic/gin"
 	"github.com/kornetvba/YandShortUrl/internal/handler"
-	"github.com/kornetvba/YandShortUrl/internal/repository"
+	"github.com/kornetvba/YandShortUrl/internal/repository/memory"
 	"github.com/kornetvba/YandShortUrl/internal/service"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -114,7 +114,7 @@ func TestCompressTextPlain(t *testing.T) {
 	}
 	for _, tt := range tableTests {
 		t.Run(tt.name, func(t *testing.T) {
-			handlerURL := handler.NewURLHandler(repository.NewURLRecords())
+			handlerURL := handler.NewURLHandler(memory.NewURLRecords())
 
 			gin.SetMode(gin.ReleaseMode)
 			router := gin.New()
