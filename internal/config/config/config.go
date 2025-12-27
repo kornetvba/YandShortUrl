@@ -76,6 +76,8 @@ func (f *FilePathType) IsEnabled() bool {
 	return true
 }
 
+//host=localhost port=5432 user=postgres password=postgres dbname=short_url sslmode=disable
+
 func ParseFlags() error {
 
 	_ = flag.Value(Addr)
@@ -83,7 +85,7 @@ func ParseFlags() error {
 	flag.Var(Addr, "a", "Net address host:port")
 	flag.StringVar(&ResultURL, "b", "http://localhost:8080", "result url")
 	flag.StringVar(&LevelLog, "l", "info", "level logger")
-	flag.StringVar(&DatabaseDSN, "d", "host=localhost port=5432 user=postgres password=postgres dbname=short_url sslmode=disable", "database adr")
+	flag.StringVar(&DatabaseDSN, "d", "", "database adr")
 	flag.Var(FilePath, "f", "file path to save json")
 	flag.Parse()
 

@@ -2,13 +2,18 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"github.com/gin-gonic/gin"
+	"github.com/kornetvba/YandShortUrl/internal/backup"
+	"github.com/kornetvba/YandShortUrl/internal/backup/db_manager"
+	"github.com/kornetvba/YandShortUrl/internal/backup/memory_manager"
 	"github.com/kornetvba/YandShortUrl/internal/config/compress"
 	"github.com/kornetvba/YandShortUrl/internal/config/config"
-	"github.com/kornetvba/YandShortUrl/internal/config/db"
 	"github.com/kornetvba/YandShortUrl/internal/config/logger"
 	"github.com/kornetvba/YandShortUrl/internal/handler"
-	"github.com/kornetvba/YandShortUrl/internal/repository"
+	"github.com/kornetvba/YandShortUrl/internal/repository/memory"
+	"github.com/kornetvba/YandShortUrl/internal/repository/pg"
+	_ "github.com/lib/pq"
 	"go.uber.org/zap"
 	"log"
 	"net/http"
@@ -26,13 +31,11 @@ func run(URLHandler *handler.URLHandler) (*http.Server, error) {
 	if err != nil {
 		return nil, err
 	}
-	logger.Log.Info("server is running", zap.String("address", config.Addr.String()))
 
+	logger.Log.Info("server is running", zap.String("address", config.Addr.String()))
 	r := gin.New()
 	r.Use(logger.HTTPLoggerMiddleWare())
 	r.Use(compress.GzipCompressMiddleWare())
-
-	//r.Use(gz.Gzip(gz.BestCompression))
 
 	r.Use(gin.Recovery())
 	r.POST("/", URLHandler.TextPlainPage)
@@ -44,6 +47,7 @@ func run(URLHandler *handler.URLHandler) (*http.Server, error) {
 		Addr:    config.Addr.Host + ":" + strconv.Itoa(config.Addr.Port),
 		Handler: r,
 	}
+
 	go func() {
 		if err = srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			logger.Log.Error("Server failed", zap.Error(err))
@@ -54,33 +58,57 @@ func run(URLHandler *handler.URLHandler) (*http.Server, error) {
 }
 
 func main() {
-	handlerURL := handler.NewURLHandler(repository.NewURLRecords())
-
 	err := config.ParseFlags()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	database := db.Database{nil}
-	_, err = database.New(config.DatabaseDSN)
+	var handlerURL *handler.URLHandler
+	var backupStorage *backup.BackupManager
+
+	if config.DatabaseDSN != "" {
+		con, err := sql.Open("postgres", config.DatabaseDSN)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer con.Close()
+		if err := con.Ping(); err != nil {
+			log.Fatal(err)
+		}
+		store := pg.NewStore(con)
+		//Создаем хендлер с хранилищем
+		handlerURL = handler.NewURLHandler(store)
+		//Создаем бэкап нашего хранилища
+		backupStore := db_manager.NewBackupStorage(store)
+		backupStorage = backup.NewBackupManager(backupStore)
+
+		//Создаем таблицы
+		err = store.BootStrap()
+		if err != nil {
+			log.Fatal(err)
+		}
+	} else {
+		store := memory.NewURLRecords()
+		handlerURL = handler.NewURLHandler(store)
+		backupMemory := memory_manager.NewBackupStorage(store)
+		backupStorage = backup.NewBackupManager(backupMemory)
+	}
+
+	//Загружаем данные из файла
+	err = backupStorage.DownloadRecordsToFile(config.FilePath)
 	if err != nil {
 		log.Print(err)
 	}
-
-	err = handlerURL.Storage.LoadRecords(config.FilePath)
-	if err != nil {
-		log.Print(err)
-	}
-
+	//Запускаем сервер
 	srv, err := run(handlerURL)
 	if err != nil {
 		logger.Log.Error("serv not running", zap.Error(err))
 		return
 	}
-
+	//Горутина для сохранения файла, graceful shutdown
 	defer func() {
 		logger.Log.Info("Saving data to file...")
-		if err = handlerURL.Storage.SaveFile(config.FilePath); err != nil {
+		if err = backupStorage.SaveDataFile(config.FilePath); err != nil {
 			if err.Error() == "Writing/reading to a file is disabled" {
 				logger.Log.Info("Writing/reading to a file is disabled")
 				return

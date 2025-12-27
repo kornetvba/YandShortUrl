@@ -66,9 +66,9 @@ func (mr *MockURLStorageMockRecorder) GetRecord(arg0 interface{}) *gomock.Call {
 }
 
 // LoadRecords mocks base method.
-func (m *MockURLStorage) LoadRecords(arg0 *config.FilePathType) error {
+func (m *MockURLStorage) DownloadRecords(arg0 *config.FilePathType) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "LoadRecords", arg0)
+	ret := m.ctrl.Call(m, "DownloadRecords", arg0)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
@@ -76,13 +76,13 @@ func (m *MockURLStorage) LoadRecords(arg0 *config.FilePathType) error {
 // LoadRecords indicates an expected call of LoadRecords.
 func (mr *MockURLStorageMockRecorder) LoadRecords(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadRecords", reflect.TypeOf((*MockURLStorage)(nil).LoadRecords), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DownloadRecords", reflect.TypeOf((*MockURLStorage)(nil).DownloadRecords), arg0)
 }
 
 // ReadFile mocks base method.
-func (m *MockURLStorage) ReadFile(arg0 *config.FilePathType) (*os.File, error) {
+func (m *MockURLStorage) OpenFile(arg0 *config.FilePathType) (*os.File, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ReadFile", arg0)
+	ret := m.ctrl.Call(m, "OpenFile", arg0)
 	ret0, _ := ret[0].(*os.File)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -91,7 +91,7 @@ func (m *MockURLStorage) ReadFile(arg0 *config.FilePathType) (*os.File, error) {
 // ReadFile indicates an expected call of ReadFile.
 func (mr *MockURLStorageMockRecorder) ReadFile(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadFile", reflect.TypeOf((*MockURLStorage)(nil).ReadFile), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OpenFile", reflect.TypeOf((*MockURLStorage)(nil).OpenFile), arg0)
 }
 
 // SaveFile mocks base method.
