@@ -9,6 +9,7 @@ import (
 	"github.com/kornetvba/YandShortUrl/internal/backup/memory_manager"
 	"github.com/kornetvba/YandShortUrl/internal/config/compress"
 	"github.com/kornetvba/YandShortUrl/internal/config/config"
+	"github.com/kornetvba/YandShortUrl/internal/config/db"
 	"github.com/kornetvba/YandShortUrl/internal/config/logger"
 	"github.com/kornetvba/YandShortUrl/internal/handler"
 	"github.com/kornetvba/YandShortUrl/internal/repository/memory"
@@ -68,9 +69,11 @@ func main() {
 
 	if config.DatabaseDSN != "" {
 		con, err := sql.Open("postgres", config.DatabaseDSN)
+		db.DB = con
 		if err != nil {
 			log.Fatal(err)
 		}
+
 		defer con.Close()
 		if err := con.Ping(); err != nil {
 			log.Fatal(err)
@@ -88,6 +91,13 @@ func main() {
 			log.Fatal(err)
 		}
 	} else {
+		//Оно не надо, но тз сказало так)
+		con, err := sql.Open("postgres", "host=localhost port=5432 user=postgres password=postgres dbname=short_url sslmode=disable")
+		db.DB = con
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer con.Close()
 		store := memory.NewURLRecords()
 		handlerURL = handler.NewURLHandler(store)
 		backupMemory := memory_manager.NewBackupStorage(store)

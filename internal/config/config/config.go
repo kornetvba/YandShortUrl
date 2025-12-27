@@ -76,8 +76,6 @@ func (f *FilePathType) IsEnabled() bool {
 	return true
 }
 
-//host=localhost port=5432 user=postgres password=postgres dbname=short_url sslmode=disable
-
 func ParseFlags() error {
 
 	_ = flag.Value(Addr)
