@@ -25,13 +25,7 @@ func (bs *BackupPG) SaveFile(filePath *config.FilePathType) (err error) {
 		return errors.New("writing/reading to a file is disabled")
 	}
 	var existingData = make(map[string]bool)
-	filepath := filePath.Dir()
-	if len(filepath) > 2 {
-		err := os.MkdirAll(filePath.Dir(), 0777)
-		if err != nil {
-			return err
-		}
-	}
+
 	file, err := os.OpenFile(filePath.String(), os.O_CREATE|os.O_APPEND|os.O_RDWR, 0777)
 	if err != nil {
 		return err
@@ -74,12 +68,16 @@ func (bs *BackupPG) SaveFile(filePath *config.FilePathType) (err error) {
 		}
 
 	}
+	if rows.Err() != nil {
+		return err
+	}
 
 	return nil
 
 }
 
 func (bs *BackupPG) DownloadRecords(filePath *config.FilePathType) error {
+
 	if !filePath.IsEnabled() {
 		return errors.New("writing/reading to a file is disabled")
 	}
@@ -94,6 +92,16 @@ func (bs *BackupPG) DownloadRecords(filePath *config.FilePathType) error {
 		return err
 	}
 
+	stmt, err := tx.Prepare(`
+			INSERT INTO short_url_records (id, shortened_url, original_url)
+			VALUES ($1, $2, $3)
+			ON CONFLICT DO NOTHING
+			`)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		var record repository.URLRecord
@@ -102,12 +110,8 @@ func (bs *BackupPG) DownloadRecords(filePath *config.FilePathType) error {
 			tx.Rollback()
 			return err
 		}
-		_, err := tx.Exec(`
-			INSERT INTO short_url_records (id, shortened_url, original_url)
-			VALUES ($1, $2, $3)
-			ON CONFLICT DO NOTHING
-			`, record.ID, record.ShortURL, record.OriginalURL,
-		)
+
+		_, err := stmt.Exec(record.ID, record.ShortURL, record.OriginalURL)
 		if err != nil {
 			trErr := tx.Rollback()
 			if trErr != nil {
@@ -116,6 +120,10 @@ func (bs *BackupPG) DownloadRecords(filePath *config.FilePathType) error {
 			return err
 		}
 
+	}
+	if err := scanner.Err(); err != nil {
+		tx.Rollback()
+		return err
 	}
 
 	err = tx.Commit()

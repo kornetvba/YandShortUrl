@@ -48,14 +48,12 @@ func (s *Store) AppendRecord(shortURL string, originalURL string) error {
 }
 func (s *Store) GetRecord(shortURL string) (*repository.URLRecord, error) {
 	row := s.Conn.QueryRow(`
-	SELECT * FROM short_url_records
+	SELECT id, shortener_url, original_url FROM short_url_records
 	WHERE shortened_url = $1
 	`, shortURL)
 
 	var url repository.URLRecord
-	if row == nil {
-		return nil, row.Err()
-	}
+
 	err := row.Scan(&url.ID, &url.ShortURL, &url.OriginalURL)
 	if err != nil {
 		return nil, err

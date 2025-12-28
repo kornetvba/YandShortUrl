@@ -19,18 +19,12 @@ func NewBackupStorage(store *memory.URLRecords) *BackupMemory {
 	return &BackupMemory{MemoryStorage: store}
 }
 
-func (bm *BackupMemory) SaveFile(filePath *config.FilePathType) (err error) {
+func (bm *BackupMemory) SaveFile(filePath *config.FilePathType) error {
 	if !filePath.IsEnabled() {
 		return errors.New("writing/reading to a file is disabled")
 	}
 	var existingData = make(map[string]bool)
-	filepath := filePath.Dir()
-	if len(filepath) > 2 {
-		err := os.MkdirAll(filePath.Dir(), 0777)
-		if err != nil {
-			return err
-		}
-	}
+
 	file, err := os.OpenFile(filePath.String(), os.O_CREATE|os.O_APPEND|os.O_RDWR, 0777)
 	if err != nil {
 		return err
@@ -46,6 +40,11 @@ func (bm *BackupMemory) SaveFile(filePath *config.FilePathType) (err error) {
 		}
 		existingData[record.ShortURL] = true
 	}
+
+	if err := scanner.Err(); err != nil {
+		return err
+	}
+
 	for _, v := range *bm.MemoryStorage {
 		if existingData[v.ShortURL] {
 			continue
@@ -80,6 +79,9 @@ func (bm *BackupMemory) DownloadRecords(filePath *config.FilePathType) error {
 
 		*bm.MemoryStorage = append(*bm.MemoryStorage, record)
 
+	}
+	if err := scanner.Err(); err != nil {
+		return err
 	}
 
 	return nil
