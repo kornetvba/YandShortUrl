@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -61,6 +62,7 @@ func (mh *URLHandler) GetTextPlainPage(c *gin.Context) {
 	resURL, err := mh.Storage.GetRecord(id)
 
 	if err != nil {
+		fmt.Println(err)
 		c.String(http.StatusBadRequest, "")
 		return
 	}
@@ -130,4 +132,53 @@ func (mh *URLHandler) PingHandler(c *gin.Context) {
 		return
 	}
 	c.Writer.WriteHeader(http.StatusOK)
+}
+
+func (mh *URLHandler) PostURLS(c *gin.Context) {
+
+	if c.GetHeader("Content-type") != "application/json" {
+		c.String(http.StatusUnsupportedMediaType, "")
+		return
+	}
+
+	records := make([]repository.URLRecord, 0, 20)
+
+	data, err := c.GetRawData()
+
+	if err != nil {
+		c.String(http.StatusBadRequest, "")
+		return
+	}
+
+	if err := json.NewDecoder(bytes.NewBuffer(data)).Decode(&records); err != nil {
+		c.String(http.StatusUnprocessableEntity, "")
+		return
+	}
+
+	if len(records) == 0 {
+		c.Status(http.StatusNoContent)
+		return
+	}
+
+	resData, err := mh.Storage.AppendRecords(&records)
+
+	if err != nil {
+		c.String(http.StatusInternalServerError, "")
+		return
+	}
+	type responseData struct {
+		ID       string `json:"correlation_id"`
+		ShortURL string `json:"short_url"`
+	}
+	var respItems []responseData
+
+	for _, r := range resData {
+		respItems = append(respItems, responseData{
+			ID:       r.CorrelationID,
+			ShortURL: r.ShortURL,
+		})
+	}
+
+	c.JSON(http.StatusOK, respItems)
+
 }

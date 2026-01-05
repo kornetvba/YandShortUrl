@@ -55,7 +55,7 @@ func (bs *BackupPG) SaveFile(filePath *config.FilePathType) (err error) {
 	for rows.Next() {
 		var url repository.URLRecord
 
-		err = rows.Scan(&url.ID, &url.ShortURL, &url.OriginalURL)
+		err = rows.Scan(&url.CorrelationID, &url.ShortURL, &url.OriginalURL)
 		if err != nil {
 			return err
 		}
@@ -111,7 +111,7 @@ func (bs *BackupPG) DownloadRecords(filePath *config.FilePathType) error {
 			return err
 		}
 
-		_, err := stmt.Exec(record.ID, record.ShortURL, record.OriginalURL)
+		_, err := stmt.Exec(record.CorrelationID, record.ShortURL, record.OriginalURL)
 		if err != nil {
 			trErr := tx.Rollback()
 			if trErr != nil {

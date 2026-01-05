@@ -3,6 +3,7 @@ package memory
 import (
 	"errors"
 	"github.com/kornetvba/YandShortUrl/internal/repository"
+	"github.com/kornetvba/YandShortUrl/internal/service"
 )
 
 type URLRecords []repository.URLRecord
@@ -29,6 +30,26 @@ func (ur *URLRecords) GetRecord(shortURL string) (*repository.URLRecord, error) 
 		}
 	}
 	return nil, errors.New("id not found")
+}
+
+func (ur *URLRecords) AppendRecords(records *[]repository.URLRecord) ([]repository.URLRecord, error) {
+	var result []repository.URLRecord
+	for _, record := range *records {
+		hashID, err := service.HashPlainText([]byte(record.OriginalURL))
+		if err != nil {
+			return nil, err
+		}
+		if _, err := ur.GetRecord(hashID); err == nil {
+			continue
+		}
+
+		record.ShortURL = hashID
+		*ur = append(*ur, record)
+		result = append(result, record)
+	}
+
+	return result, nil
+
 }
 
 //func (ur *URLRecords) DownloadRecords(filePath *config.FilePathType) error {

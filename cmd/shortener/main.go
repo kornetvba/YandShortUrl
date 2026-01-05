@@ -43,6 +43,7 @@ func run(URLHandler *handler.URLHandler) (*http.Server, error) {
 	r.POST("/api/shorten", URLHandler.PostURL)
 	r.GET("/:id", URLHandler.GetTextPlainPage)
 	r.GET("/ping", URLHandler.PingHandler)
+	r.POST("/api/shorten/batch", URLHandler.PostURLS)
 
 	srv := &http.Server{
 		Addr:    config.Addr.Host + ":" + strconv.Itoa(config.Addr.Port),

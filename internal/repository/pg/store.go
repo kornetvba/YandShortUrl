@@ -3,6 +3,7 @@ package pg
 import (
 	"database/sql"
 	"github.com/kornetvba/YandShortUrl/internal/repository"
+	"github.com/kornetvba/YandShortUrl/internal/service"
 )
 
 type Store struct {
@@ -16,7 +17,7 @@ func NewStore(db *sql.DB) *Store {
 func (s *Store) BootStrap() error {
 	_, err := s.Conn.Exec(`
 		CREATE TABLE IF NOT EXISTS short_url_records (
-			id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+			id VARCHAR(36) PRIMARY KEY DEFAULT gen_random_uuid()::VARCHAR,
 			shortened_url VARCHAR(150) NOT NULL UNIQUE,
 			original_url TEXT NOT NULL
 		)
@@ -48,18 +49,60 @@ func (s *Store) AppendRecord(shortURL string, originalURL string) error {
 }
 func (s *Store) GetRecord(shortURL string) (*repository.URLRecord, error) {
 	row := s.Conn.QueryRow(`
-	SELECT id, shortener_url, original_url FROM short_url_records
+	SELECT id, shortened_url, original_url FROM short_url_records
 	WHERE shortened_url = $1
 	`, shortURL)
 
 	var url repository.URLRecord
 
-	err := row.Scan(&url.ID, &url.ShortURL, &url.OriginalURL)
+	err := row.Scan(&url.CorrelationID, &url.ShortURL, &url.OriginalURL)
 	if err != nil {
+
 		return nil, err
 	}
 
 	return &url, nil
+}
+
+func (s *Store) AppendRecords(records *[]repository.URLRecord) ([]repository.URLRecord, error) {
+	tx, err := s.Conn.Begin()
+	if err != nil {
+		return nil, err
+	}
+	stmt, err := tx.Prepare(`
+		INSERT INTO short_url_records
+		(id, shortened_url, original_url)
+		VALUES ($1, $2, $3)
+`)
+	if err != nil {
+		return nil, err
+	}
+	defer stmt.Close()
+
+	responseBody := []repository.URLRecord{}
+	for _, record := range *records {
+		shortest, err := service.HashPlainText([]byte(record.OriginalURL))
+		if err != nil {
+			tx.Rollback()
+			return nil, err
+		}
+		record.ShortURL = shortest
+
+		_, err = stmt.Exec(record.CorrelationID, record.ShortURL, record.OriginalURL)
+		if err != nil {
+			tx.Rollback()
+			return nil, err
+		}
+		record.OriginalURL = ""
+		responseBody = append(responseBody, record)
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return nil, err
+	}
+	return responseBody, nil
+
 }
 
 //func (s *Store) DownloadRecords(filePath *config.FilePathType) error {
