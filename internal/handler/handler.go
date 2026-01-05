@@ -179,6 +179,6 @@ func (mh *URLHandler) PostURLS(c *gin.Context) {
 		})
 	}
 
-	c.JSON(http.StatusOK, respItems)
+	c.JSON(http.StatusCreated, respItems)
 
 }
