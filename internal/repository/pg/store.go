@@ -85,6 +85,10 @@ func (s *Store) AppendRecords(records *[]repository.URLRecord) ([]repository.URL
 
 	responseBody := []repository.URLRecord{}
 	for _, record := range *records {
+
+		if record.CorrelationID == "" || record.OriginalURL == "" {
+			continue
+		}
 		shortest, err := service.HashPlainText([]byte(record.OriginalURL))
 		if err != nil {
 			tx.Rollback()
