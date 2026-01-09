@@ -35,6 +35,9 @@ func (ur *URLRecords) GetRecord(shortURL string) (*repository.URLRecord, error) 
 func (ur *URLRecords) AppendRecords(records *[]repository.URLRecord) ([]repository.URLRecord, error) {
 	var result []repository.URLRecord
 	for _, record := range *records {
+		if record.CorrelationID == "" || record.OriginalURL == "" {
+			continue
+		}
 		hashID, err := service.HashPlainText([]byte(record.OriginalURL))
 		if err != nil {
 			return nil, err
