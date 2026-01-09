@@ -97,7 +97,6 @@ func (s *Store) AppendRecords(records *[]repository.URLRecord) ([]repository.URL
 			tx.Rollback()
 			return nil, err
 		}
-		record.OriginalURL = ""
 		responseBody = append(responseBody, record)
 	}
 
