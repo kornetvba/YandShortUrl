@@ -2,6 +2,8 @@ package memory
 
 import (
 	"errors"
+	"fmt"
+	"github.com/kornetvba/YandShortUrl/internal/config/config"
 	"github.com/kornetvba/YandShortUrl/internal/repository"
 	"github.com/kornetvba/YandShortUrl/internal/service"
 )
@@ -48,6 +50,7 @@ func (ur *URLRecords) AppendRecords(records *[]repository.URLRecord) ([]reposito
 
 		record.ShortURL = hashID
 		*ur = append(*ur, record)
+		record.ShortURL = fmt.Sprintf("%s%s%s", config.ResultURL, "/", hashID)
 		result = append(result, record)
 	}
 

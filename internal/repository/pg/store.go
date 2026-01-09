@@ -2,6 +2,8 @@ package pg
 
 import (
 	"database/sql"
+	"fmt"
+	"github.com/kornetvba/YandShortUrl/internal/config/config"
 	"github.com/kornetvba/YandShortUrl/internal/repository"
 	"github.com/kornetvba/YandShortUrl/internal/service"
 )
@@ -53,10 +55,6 @@ func (s *Store) GetRecord(shortURL string) (*repository.URLRecord, error) {
 	WHERE shortened_url = $1
 	`, shortURL)
 
-	if row.Err() != nil {
-		return nil, row.Err()
-	}
-
 	var url repository.URLRecord
 
 	err := row.Scan(&url.CorrelationID, &url.ShortURL, &url.OriginalURL)
@@ -101,6 +99,7 @@ func (s *Store) AppendRecords(records *[]repository.URLRecord) ([]repository.URL
 			tx.Rollback()
 			return nil, err
 		}
+		record.ShortURL = fmt.Sprintf("%s%s%s", config.ResultURL, "/", shortest)
 		responseBody = append(responseBody, record)
 	}
 
