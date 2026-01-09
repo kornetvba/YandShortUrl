@@ -53,6 +53,10 @@ func (s *Store) GetRecord(shortURL string) (*repository.URLRecord, error) {
 	WHERE shortened_url = $1
 	`, shortURL)
 
+	if row.Err() != nil {
+		return nil, row.Err()
+	}
+
 	var url repository.URLRecord
 
 	err := row.Scan(&url.CorrelationID, &url.ShortURL, &url.OriginalURL)
