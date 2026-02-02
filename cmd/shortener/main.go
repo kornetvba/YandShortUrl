@@ -40,10 +40,10 @@ func run(URLHandler *handler.URLHandler) (*http.Server, error) {
 
 	r.Use(gin.Recovery())
 	r.POST("/", URLHandler.TextPlainPage)
-	r.POST("/api/shorten", URLHandler.PostURL)
+	r.POST("/api/shorten", URLHandler.CreateShortURL)
 	r.GET("/:id", URLHandler.GetTextPlainPage)
-	r.GET("/ping", URLHandler.PingHandler)
-	r.POST("/api/shorten/batch", URLHandler.PostURLS)
+	r.GET("/ping", URLHandler.PingDB)
+	r.POST("/api/shorten/batch", URLHandler.CreateShortURLBatch)
 
 	srv := &http.Server{
 		Addr:    config.Addr.Host + ":" + strconv.Itoa(config.Addr.Port),

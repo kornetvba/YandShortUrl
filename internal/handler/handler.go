@@ -71,7 +71,7 @@ func (mh *URLHandler) GetTextPlainPage(c *gin.Context) {
 
 }
 
-func (mh *URLHandler) PostURL(c *gin.Context) {
+func (mh *URLHandler) CreateShortURL(c *gin.Context) {
 	type requestURL struct {
 		URL string `json:"url"`
 	}
@@ -123,7 +123,7 @@ func (mh *URLHandler) PostURL(c *gin.Context) {
 
 }
 
-func (mh *URLHandler) PingHandler(c *gin.Context) {
+func (mh *URLHandler) PingDB(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 	err := db.DB.PingContext(ctx)
@@ -134,13 +134,13 @@ func (mh *URLHandler) PingHandler(c *gin.Context) {
 	c.Writer.WriteHeader(http.StatusOK)
 }
 
-func (mh *URLHandler) PostURLS(c *gin.Context) {
+func (mh *URLHandler) CreateShortURLBatch(c *gin.Context) {
 
 	if c.GetHeader("Content-type") != "application/json" {
 		c.String(http.StatusUnsupportedMediaType, "")
 		return
 	}
-
+	//helo
 	records := make([]repository.URLRecord, 0, 20)
 
 	data, err := c.GetRawData()

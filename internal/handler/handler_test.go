@@ -220,7 +220,7 @@ func TestPostURL(t *testing.T) {
 
 			router := gin.New()
 			handlerURL := NewURLHandler(memory.NewURLRecords())
-			router.POST("/", handlerURL.PostURL)
+			router.POST("/", handlerURL.CreateShortURL)
 			w := httptest.NewRecorder()
 			router.ServeHTTP(w, req)
 			res := w.Result()
