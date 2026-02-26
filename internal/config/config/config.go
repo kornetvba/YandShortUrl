@@ -23,6 +23,7 @@ type FilePathType struct {
 	FilePath string
 }
 
+// result url
 var (
 	ResultURL string
 	LevelLog  string
